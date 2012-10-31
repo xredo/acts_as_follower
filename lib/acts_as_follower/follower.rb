@@ -77,8 +77,8 @@ module ActsAsFollower #:nodoc:
       end
 
       # Returns the actual records of a particular type which this record is following with rights.
-      def following_by_type_with_rights(followable_type)
-        follows.unblocked.with_rights.for_followable_type(followable_type).collect{|f| f.followable}
+      def following_by_type_with_rights(followable_type, options={})
+        self.following_by_type(followable_type, options).where(:"follows.has_rights" => true)
       end
 
       def following_by_type_count(followable_type)

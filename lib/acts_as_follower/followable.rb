@@ -38,8 +38,8 @@ module ActsAsFollower #:nodoc:
       end
 
       # Return all the followers of a given type with rights
-      def followers_by_type_with_rights(class_name)
-        self.followings.unblocked.with_rights.for_follower_type(class_name).collect{|f| f.follower}
+      def followers_by_type_with_rights(class_name, options={})
+        self.followers_by_type(class_name, options).where(:"follows.has_rights" => true)
       end
 
       def followers_by_type_count(follower_type)
