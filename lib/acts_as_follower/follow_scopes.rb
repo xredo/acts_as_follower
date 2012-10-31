@@ -41,5 +41,17 @@ module ActsAsFollower #:nodoc:
       where(:has_rights => false)
     end
 
+    def pending
+      where(:unconfirmed => true)
+    end
+
+    def confirmed
+      where(:unconfirmed => false)
+    end
+
+    def unconfirmed
+      where(:unconfirmed => true)
+    end
+
   end
 end

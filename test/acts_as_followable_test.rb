@@ -198,6 +198,44 @@ class ActsAsFollowableTest < ActiveSupport::TestCase
       end
     end
 
+    context "following as unconfirmed" do
+        setup do
+          @jon.follow_as_unconfirmed(@oasis)
+          @sam.follow(@oasis)
+        end
+
+        should "not has to count as a follower" do
+          assert_equal 1, @oasis.followers_count
+        end
+
+         should "count as an unconfirmed follower" do
+          assert_equal 1, @oasis.unconfirmed_followers_count
+        end
+
+        should "not be present when listing followers" do
+          assert_equal [@sam], @oasis.followers
+        end
+    end
+
+    context "confirming an unconfirmed follower" do
+        setup do
+          @jon.follow_as_unconfirmed(@oasis)
+          @oasis.confirm(@jon)
+        end
+
+        should "count as a follower" do
+          assert_equal 1, @oasis.followers_count
+        end
+
+         should "not count as an unconfirmed follower" do
+          assert_equal 0, @oasis.unconfirmed_followers_count
+        end
+
+        should "be present when listing followers" do
+          assert_equal [@jon], @oasis.followers
+        end
+    end
+
     context "has rights" do
       setup do
         @sam.follow(@oasis)
@@ -330,6 +368,20 @@ class ActsAsFollowableTest < ActiveSupport::TestCase
       should "return followers with rights for given type" do
         @oasis.give_rights(@jon)
         assert_equal [@jon], @oasis.user_followers_with_rights
+      end
+
+      should "return followers unconfirmed for given type" do
+        @bob = FactoryGirl.create(:bob)
+        @bob.follow_as_unconfirmed(@oasis)
+        assert_equal [@sam, @jon], @oasis.user_followers
+        assert_equal [@bob], @oasis.unconfirmed_user_followers
+      end
+
+      should "return all followers (including blocked and pending) for given type" do
+        @bob = FactoryGirl.create(:bob)
+        @bob.follow_as_unconfirmed(@oasis)
+        @oasis.block(@jon)
+        assert_equal [@sam, @jon, @bob], @oasis.all_user_followers
       end
     end
   end

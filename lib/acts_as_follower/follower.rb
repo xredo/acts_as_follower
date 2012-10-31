@@ -16,17 +16,17 @@ module ActsAsFollower #:nodoc:
     module InstanceMethods
 
       def has_rights_for? (followable)
-        Follow.unblocked.for_follower(self).for_followable(followable).with_rights.exists?
+        Follow.unblocked.confirmed.for_follower(self).for_followable(followable).with_rights.exists?
       end
 
       # Returns true if this instance is following the object passed as an argument.
       def following?(followable)
-        0 < Follow.unblocked.for_follower(self).for_followable(followable).count
+        0 < Follow.unblocked.confirmed.for_follower(self).for_followable(followable).count
       end
 
       # Returns the number of objects this instance is following.
       def follow_count
-        Follow.unblocked.for_follower(self).count
+        Follow.unblocked.confirmed.for_follower(self).count
       end
 
       # Creates a new follow record for this instance to follow the passed object.
@@ -35,6 +35,12 @@ module ActsAsFollower #:nodoc:
         if self != followable
           self.follows.find_or_create_by_followable_id_and_followable_type(followable.id, parent_class_name(followable))
         end
+      end
+
+      # Creates a new follow record for this instance to follow the passed object.
+      # It creates the follow with the unconfirmed attribute set to true
+      def follow_as_unconfirmed(followable)
+        self.follow(followable).try(:update_attribute, :unconfirmed, true)
       end
 
       # Deletes the follow record if it exists.
@@ -46,12 +52,12 @@ module ActsAsFollower #:nodoc:
 
       # Returns the follow records related to this instance by type.
       def follows_by_type(followable_type, options={})
-        self.follows.unblocked.includes(:followable).for_followable_type(followable_type).all(options)
+        self.follows.unblocked.confirmed.includes(:followable).for_followable_type(followable_type).all(options)
       end
 
       # Returns the follow records related to this instance with the followable included.
       def all_follows(options={})
-        self.follows.unblocked.includes(:followable).all(options)
+        self.follows.unblocked.confirmed.includes(:followable).all(options)
       end
 
       # Returns the actual records which this instance is following.
@@ -64,6 +70,7 @@ module ActsAsFollower #:nodoc:
         followables = followable_type.constantize.
           joins(:followings).
           where('follows.blocked'         => false,
+                'follows.unconfirmed'     => false,
                 'follows.follower_id'     => self.id, 
                 'follows.follower_type'   => parent_class_name(self), 
                 'follows.followable_type' => followable_type)
@@ -82,7 +89,7 @@ module ActsAsFollower #:nodoc:
       end
 
       def following_by_type_count(followable_type)
-        follows.unblocked.for_followable_type(followable_type).count
+        follows.unblocked.confirmed.for_followable_type(followable_type).count
       end
 
       # Allows magic names on following_by_type
@@ -103,7 +110,7 @@ module ActsAsFollower #:nodoc:
 
       # Returns a follow record for the current instance and followable object.
       def get_follow(followable)
-        self.follows.unblocked.for_followable(followable).first
+        self.follows.unblocked.confirmed.for_followable(followable).first
       end
 
     end
