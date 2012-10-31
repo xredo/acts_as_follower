@@ -279,6 +279,17 @@ class ActsAsFollowableTest < ActiveSupport::TestCase
         assert_equal [@sam], @oasis.followers_by_type('User')
       end
 
+      should "return followers with rights for given type" do
+        @oasis.give_rights(@jon)
+        assert_equal [@jon], @oasis.followers_by_type_with_rights('User')
+      end
+
+      should "not return followers with rights for given type if follower blocked" do
+        @oasis.give_rights(@jon)
+        @oasis.block(@jon)
+        assert_equal [], @oasis.followers_by_type_with_rights('User')
+      end
+
       should "return the count for followers_by_type_count for a given type" do
         assert_equal 1, @jon.followers_by_type_count('User')
         assert_equal 2, @oasis.followers_by_type_count('User')
