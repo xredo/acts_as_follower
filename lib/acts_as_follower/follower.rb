@@ -19,6 +19,10 @@ module ActsAsFollower #:nodoc:
         Follow.unblocked.confirmed.for_follower(self).for_followable(followable).with_rights.exists?
       end
 
+      def unconfirmed_for? (followable)
+        Follow.unblocked.unconfirmed.for_follower(self).for_followable(followable).exists?
+      end
+
       # Returns true if this instance is following the object passed as an argument.
       def following?(followable)
         0 < Follow.unblocked.confirmed.for_follower(self).for_followable(followable).count

@@ -215,12 +215,20 @@ class ActsAsFollowableTest < ActiveSupport::TestCase
         should "not be present when listing followers" do
           assert_equal [@sam], @oasis.followers
         end
+
+        should "return true if asked as unconfirmed" do
+          assert_equal true, @jon.unconfirmed_for?(@oasis)
+        end
     end
 
     context "confirming an unconfirmed follower" do
         setup do
           @jon.follow_as_unconfirmed(@oasis)
           @oasis.confirm(@jon)
+        end
+
+        should "return false if asked as unconfirmed" do
+          assert_equal false, @jon.unconfirmed_for?(@oasis)
         end
 
         should "count as a follower" do
