@@ -15,6 +15,10 @@ module ActsAsFollower #:nodoc:
 
     module InstanceMethods
 
+      def has_rights_for? (followable)
+        Follow.unblocked.for_follower(self).for_followable(followable).with_rights.exists?
+      end
+
       # Returns true if this instance is following the object passed as an argument.
       def following?(followable)
         0 < Follow.unblocked.for_follower(self).for_followable(followable).count
@@ -72,6 +76,11 @@ module ActsAsFollower #:nodoc:
         followables
       end
 
+      # Returns the actual records of a particular type which this record is following with rights.
+      def following_by_type_with_rights(followable_type)
+        follows.unblocked.with_rights.for_followable_type(followable_type).collect{|f| f.followable}
+      end
+
       def following_by_type_count(followable_type)
         follows.unblocked.for_followable_type(followable_type).count
       end
@@ -83,6 +92,8 @@ module ActsAsFollower #:nodoc:
       def method_missing(m, *args)
         if m.to_s[/following_(.+)_count/]
           following_by_type_count($1.singularize.classify)
+        elsif m.to_s[/following_(.+)_with_rights/]
+          following_by_type_with_rights($1.singularize.classify)
         elsif m.to_s[/following_(.+)/]
           following_by_type($1.singularize.classify)
         else

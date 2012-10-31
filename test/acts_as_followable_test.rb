@@ -198,6 +198,71 @@ class ActsAsFollowableTest < ActiveSupport::TestCase
       end
     end
 
+    context "has rights" do
+      setup do
+        @sam.follow(@oasis)
+      end
+
+      should "should return false by default" do
+        assert_equal false, @oasis.has_rights?(@sam)
+      end
+
+    end
+
+    context "giving rights to a follower" do
+      setup do
+        @sam.follow(@oasis)
+        @oasis.give_rights(@sam)
+      end
+
+      should "should result in the user having rights" do
+        assert_equal true, @oasis.has_rights?(@sam)
+      end
+    end
+
+    context "removing rights from a follower" do
+      setup do
+        @sam.follow(@oasis)
+        @oasis.give_rights(@sam)
+        @oasis.remove_rights(@sam)
+      end
+
+      should "should result in the user not having rights" do
+        assert_equal false, @oasis.has_rights?(@sam)
+      end
+    end
+
+    context "listing followers with rights" do
+      setup do
+        @bob = FactoryGirl.create(:bob)
+        @sam.follow(@oasis)
+        @bob.follow(@oasis)
+        @jon.follow(@oasis)
+        @sam.follow(@metallica)
+
+        @oasis.give_rights(@jon)
+        @oasis.give_rights(@bob)
+      end
+
+      should "return only followers with rights" do
+        assert_equal [@bob, @jon], @oasis.followers_with_rights
+      end
+
+      should "return not return anyone if not followers with rights" do
+        assert_equal [], @metallica.followers_with_rights
+      end
+
+      context "when a user is blocked" do
+        setup do
+          @oasis.block(@bob)
+        end
+
+        should "return only non blocked followers with rights" do
+          assert_equal [@jon], @oasis.followers_with_rights
+        end
+      end
+    end
+
     context "followers_by_type" do
       setup do
         @sam.follow(@oasis)
@@ -249,6 +314,11 @@ class ActsAsFollowableTest < ActiveSupport::TestCase
       should "not count blocked follows in the count" do
         @oasis.block(@sam)
         assert_equal 1, @oasis.count_user_followers
+      end
+
+      should "return followers with rights for given type" do
+        @oasis.give_rights(@jon)
+        assert_equal [@jon], @oasis.user_followers_with_rights
       end
     end
   end

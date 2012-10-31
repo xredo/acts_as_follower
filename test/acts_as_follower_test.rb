@@ -171,6 +171,15 @@ class ActsAsFollowerTest < ActiveSupport::TestCase
       should "raise on no method" do
         assert_raises (NoMethodError){ @sam.foobar }
       end
+
+      should "call following_by_type_with_rights" do
+        @metallica = FactoryGirl.create(:metallica)
+        @sam.follow(@metallica)
+        @jon.follow(@metallica)
+        @metallica.give_rights(@sam)
+
+        assert_equal [@metallica], @sam.following_bands_with_rights
+      end
     end
 
     context "destroying follower" do

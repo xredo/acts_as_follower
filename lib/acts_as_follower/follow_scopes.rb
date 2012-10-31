@@ -33,5 +33,13 @@ module ActsAsFollower #:nodoc:
       where(:blocked => true)
     end
 
+    def with_rights
+      where(:has_rights => true)
+    end
+
+    def without_rights
+      where(:has_rights => false)
+    end
+
   end
 end

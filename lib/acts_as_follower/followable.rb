@@ -37,6 +37,11 @@ module ActsAsFollower #:nodoc:
         follows
       end
 
+      # Return all the followers of a given type with rights
+      def followers_by_type_with_rights(class_name)
+        self.followings.unblocked.with_rights.for_follower_type(class_name).collect{|f| f.follower}
+      end
+
       def followers_by_type_count(follower_type)
         self.followings.unblocked.for_follower_type(follower_type).count
       end
@@ -48,6 +53,8 @@ module ActsAsFollower #:nodoc:
       def method_missing(m, *args)
         if m.to_s[/count_(.+)_followers/]
           followers_by_type_count($1.singularize.classify)
+        elsif m.to_s[/(.+)_followers_with_rights/]
+          followers_by_type_with_rights($1.singularize.classify)
         elsif m.to_s[/(.+)_followers/]
           followers_by_type($1.singularize.classify)
         else
@@ -64,6 +71,11 @@ module ActsAsFollower #:nodoc:
         self.followings.unblocked.includes(:follower).all(options).collect{|f| f.follower}
       end
 
+      # Returns all the followers with rights
+      def followers_with_rights(options={})
+        self.followings.unblocked.with_rights.includes(:follower).all(options).collect{|f| f.follower}
+      end
+
       def blocks(options={})
         self.followings.blocked.includes(:follower).all(options).collect{|f| f.follower}
       end
@@ -74,12 +86,27 @@ module ActsAsFollower #:nodoc:
         self.followings.unblocked.for_follower(follower).exists?
       end
 
+      # Returns true if the passed follower has rights in the current instance.
+      def has_rights?(follower)
+        self.followings.unblocked.with_rights.for_follower(follower).exists?
+      end
+
       def block(follower)
         get_follow_for(follower) ? block_existing_follow(follower) : block_future_follow(follower)
       end
 
       def unblock(follower)
         get_follow_for(follower).try(:delete)
+      end
+
+      # Give rights to a follower
+      def give_rights(follower)
+        self.followings.unblocked.for_follower(follower).first.try(:update_attribute, :has_rights, true)
+      end
+
+      # Remove rights from a follower
+      def remove_rights(follower)
+        self.followings.unblocked.for_follower(follower).first.try(:update_attribute, :has_rights, false)
       end
 
       def get_follow_for(follower)
