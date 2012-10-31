@@ -1,7 +1,9 @@
-Factory.define :oasis, :class => Band do |b|
-  b.name 'Oasis'
-end
+FactoryGirl.define do
+  factory :metallica, :class => Band do |b|
+    b.name 'Metallica'
+  end
 
-Factory.define :metallica, :class => Band do |b|
-  b.name 'Metallica'
+  factory :oasis, :class => Band do |b|
+    b.name 'Oasis'
+  end
 end
