@@ -114,7 +114,7 @@ module ActsAsFollower #:nodoc:
 
       # Returns a follow record for the current instance and followable object.
       def get_follow(followable)
-        self.follows.unblocked.confirmed.for_followable(followable).first
+        self.follows.unblocked.for_followable(followable).first
       end
 
     end
